@@ -61,8 +61,10 @@ function createPlayer(player) {
     player.camera.position.set(0, 1.2, 3); // Slightly above and behind the player
     player.collider.add(player.camera);
     
-    // Ensure proper initial collision detection
-    checkCollisions(player);
+    // Ensure proper initial collision detection with multiple checks
+    for (let i = 0; i < 3; i++) {
+        checkCollisions(player);
+    }
     player.onGround = true;
     player.canJump = true;
     
@@ -124,10 +126,13 @@ function updatePlayer(player, deltaTime) {
     // Calculate movement direction
     const movementDirection = new THREE.Vector3(0, 0, 0);
     
-    if (player.moveForward) movementDirection.add(forward);
-    if (player.moveBackward) movementDirection.sub(forward);
-    if (player.moveRight) movementDirection.add(right);
-    if (player.moveLeft) movementDirection.sub(right);
+    // Only allow movement after stabilization period
+    if (gameStabilized) {
+        if (player.moveForward) movementDirection.add(forward);
+        if (player.moveBackward) movementDirection.sub(forward);
+        if (player.moveRight) movementDirection.add(right);
+        if (player.moveLeft) movementDirection.sub(right);
+    }
     
     // Normalize if moving diagonally
     if (movementDirection.length() > 0) {
@@ -229,6 +234,47 @@ function checkCollisions(player) {
                 // If player is close to the top of the box and falling
                 if (playerBottom <= boxTop + 0.5 && playerBottom >= boxTop - 0.2 && player.velocity.y <= 0) {
                     player.collider.position.y = boxTop + playerRadius;
+                    player.velocity.y = 0;
+                    player.onGround = true;
+                    player.canJump = true;
+                }
+            }
+        }
+        else if (object.type === 'plane') {
+            // Plane collision (for ground/floor)
+            const planeY = object.position.y;
+            
+            // If player is close enough to the plane
+            const playerBottom = playerPosition.y - playerRadius;
+            
+            // Check if player is within the plane's boundaries
+            if (Math.abs(playerPosition.x - object.position.x) <= object.width / 2 &&
+                Math.abs(playerPosition.z - object.position.z) <= object.height / 2) {
+                
+                // If player is close to the plane's surface and falling
+                if (playerBottom <= planeY + 0.5 && playerBottom >= planeY - 0.2 && player.velocity.y <= 0) {
+                    player.collider.position.y = planeY + playerRadius;
+                    player.velocity.y = 0;
+                    player.onGround = true;
+                    player.canJump = true;
+                }
+            }
+        }
+        else if (object.type === 'cylinder') {
+            // Cylinder collision (for posts, trees, etc.)
+            const dx = playerPosition.x - object.position.x;
+            const dz = playerPosition.z - object.position.z;
+            const horizontalDist = Math.sqrt(dx * dx + dz * dz);
+            
+            // If player is within the cylinder's radius
+            if (horizontalDist < object.radius + playerRadius) {
+                // Check vertical collision
+                const playerBottom = playerPosition.y - playerRadius;
+                const cylinderTop = object.position.y + object.height / 2;
+                
+                // If player is close to the top of the cylinder and falling
+                if (playerBottom <= cylinderTop + 0.5 && playerBottom >= cylinderTop - 0.2 && player.velocity.y <= 0) {
+                    player.collider.position.y = cylinderTop + playerRadius;
                     player.velocity.y = 0;
                     player.onGround = true;
                     player.canJump = true;

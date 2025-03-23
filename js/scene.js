@@ -108,13 +108,13 @@ function createTerrain() {
     // Add to both player scenes
     players.forEach(player => player.scene.add(ground.clone()));
     
-    // Add to collider list with explicit plane dimensions
+    // Add to collider list with explicit plane dimensions and rotation
     worldObjects.push({
         type: 'plane',
         width: 150,
         height: 150,
-        position: new THREE.Vector3(0, 0, 0), // Explicit Vector3 to avoid reference issues
-        rotation: new THREE.Euler(-Math.PI / 2, 0, 0), // Store rotation for collision detection
+        position: new THREE.Vector3(0, 0, 0),
+        rotation: new THREE.Euler(-Math.PI / 2, 0, 0),
         mesh: ground
     });
     

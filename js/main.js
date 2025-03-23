@@ -3,6 +3,8 @@
 // Game state variables
 let winner = null;
 let gameStarted = false;
+let gameStabilized = false;  // New flag to track if physics has stabilized
+let stabilizationTimer = null; // Timer for stabilization period
 let gameState = Array(6).fill().map(() => Array(7).fill(null));
 
 // Player variables
@@ -94,6 +96,12 @@ function init() {
     document.getElementById('startButton').addEventListener('click', () => {
         document.getElementById('instructions').style.display = 'none';
         gameStarted = true;
+        
+        // Add a brief stabilization period
+        stabilizationTimer = setTimeout(() => {
+            gameStabilized = true;
+            console.log("Movement stabilized");
+        }, 500); // 500ms stabilization period
     });
     
     // Set up clock
@@ -109,6 +117,15 @@ function init() {
     
     // Create players
     players.forEach(player => createPlayer(player));
+    
+    // Ensure players start on the ground - run collision detection multiple times
+    for (let i = 0; i < 5; i++) {
+        players.forEach(player => {
+            checkCollisions(player);
+            player.onGround = true;
+            player.canJump = true;
+        });
+    }
     
     // Initialize the minimap (adding this back)
     initMinimap();
