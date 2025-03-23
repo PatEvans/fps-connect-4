@@ -314,8 +314,8 @@ function createConnectFourBoard() {
         }
     }
     
-    // Position the board at the center of the map
-    boardGroup.position.set(0, 12, 0); // Center of the map
+    // Position the board at the center of the map, moved back to match tube endpoints
+    boardGroup.position.set(0, 12, -20); // Changed Z from 0 to -20 to match tube endpoints
     
     // Add to both player scenes
     players.forEach(player => {
@@ -323,7 +323,17 @@ function createConnectFourBoard() {
         player.scene.add(boardClone);
     });
     
-    // Add elevated platform under the board
+    // Add to collider list - update position to match new board position
+    worldObjects.push({
+        type: 'box',
+        width: boardWidth,
+        height: boardHeight,
+        depth: boardDepth,
+        position: new THREE.Vector3(0, 12 + boardHeight/2, -20), // Updated Z position
+        mesh: frame
+    });
+    
+    // Add elevated platform under the board - update position to match new board position
     const platformGeometry = new THREE.CylinderGeometry(18, 15, 3, 16);
     const platformMaterial = new THREE.MeshStandardMaterial({
         color: 0x9E9E9E,
@@ -332,27 +342,27 @@ function createConnectFourBoard() {
     });
     
     const platform = new THREE.Mesh(platformGeometry, platformMaterial);
-    platform.position.set(0, 1.5, 0); // Center under board
+    platform.position.set(0, 1.5, -20); // Updated Z position to match board
     platform.receiveShadow = true;
     
     // Add to both scenes
     players.forEach(player => player.scene.add(platform.clone()));
     
-    // Add to collider list
+    // Add to collider list - update position to match new platform position
     worldObjects.push({
         type: 'cylinder',
         radius: 18,
         height: 3,
-        position: new THREE.Vector3(0, 1.5, 0),
+        position: new THREE.Vector3(0, 1.5, -20), // Updated Z position
         mesh: platform
     });
     
     // Add stairs to access the platform from 4 directions
-    createPlatformStairs();
+    createPlatformStairs(-20); // Pass the Z position to update stair positions
 }
 
 // Create stairs to the central platform
-function createPlatformStairs() {
+function createPlatformStairs(boardZ = 0) { // Add parameter with default for backward compatibility
     const directions = [
         { angle: 0, name: "North" },
         { angle: Math.PI / 2, name: "East" },
@@ -387,7 +397,7 @@ function createPlatformStairs() {
             const stepWorldPos = new THREE.Vector3(
                 Math.sin(dir.angle) * ((stairCount - i) * stairDepth + 15),
                 i * stairHeight + stairHeight/2,
-                Math.cos(dir.angle) * ((stairCount - i) * stairDepth + 15)
+                Math.cos(dir.angle) * ((stairCount - i) * stairDepth + 15) + boardZ // Add boardZ to position
             );
             
             worldObjects.push({
@@ -401,8 +411,10 @@ function createPlatformStairs() {
             });
         }
         
-        // Position the stairs relative to the central platform
-        stairsGroup.position.set(0, 0, 15); // Distance from center
+        // Position the stairs relative to the central platform - update to use boardZ
+        const stairsX = Math.sin(dir.angle) * 15; 
+        const stairsZ = Math.cos(dir.angle) * 15 + boardZ; // Add boardZ to position
+        stairsGroup.position.set(stairsX, 0, stairsZ);
         stairsGroup.rotation.y = dir.angle;
         
         // Add to both scenes
