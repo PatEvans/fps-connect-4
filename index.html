@@ -59,13 +59,13 @@
         <canvas id="board2DCanvas" width="210" height="180"></canvas>
     </div>
 
-    <!-- JavaScript Modules -->
+    <!-- JavaScript Modules - Reordering to ensure dependencies are loaded first -->
     <script src="js/utils.js"></script>
+    <script src="js/scene.js"></script>
     <script src="js/animation.js"></script>
     <script src="js/player.js"></script>
-    <script src="js/game.js"></script>
     <script src="js/minimap.js"></script>
-    <script src="js/scene.js"></script>
+    <script src="js/game.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

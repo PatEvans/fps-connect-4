@@ -56,16 +56,22 @@ function createEnvironment() {
         createSkyDome(player.scene);
     });
     
-    // Create the terrain/ground
+    // Create the terrain/ground with Hunger Games style landscape
     createTerrain();
     
-    // Create the Connect 4 board (central feature)
+    // Create the Connect 4 board at the center (cornucopia)
     createConnectFourBoard();
     
-    // Create Nuketown-inspired buildings and structures
-    createNuketownStructures();
+    // Create cornucopia structure around the Connect 4 board
+    createCornucopia();
     
-    // Create the tubes/slides that lead to each column (scattered around the map)
+    // Create forest and natural elements
+    createForest();
+    
+    // Create scattered structures and resources
+    createScatteredStructures();
+    
+    // Create the tubes/slides that lead to each column (scattered around the arena)
     createTubes();
     
     // Add decoration elements
@@ -92,8 +98,8 @@ function createSkyDome(scene) {
 
 // Create the main terrain
 function createTerrain() {
-    // Main ground
-    const groundGeometry = new THREE.PlaneGeometry(150, 150);
+    // Main ground - larger for Hunger Games arena
+    const groundGeometry = new THREE.PlaneGeometry(200, 200);
     const groundMaterial = new THREE.MeshStandardMaterial({
         color: 0x8BC34A,
         roughness: 0.8,
@@ -111,82 +117,111 @@ function createTerrain() {
     // Add to collider list with explicit plane dimensions and rotation
     worldObjects.push({
         type: 'plane',
-        width: 150,
-        height: 150,
+        width: 200,
+        height: 200,
         position: new THREE.Vector3(0, 0, 0),
         rotation: new THREE.Euler(-Math.PI / 2, 0, 0),
         mesh: ground
     });
     
-    // Add streets - main road
-    const roadGeometry = new THREE.PlaneGeometry(10, 80);
-    const roadMaterial = new THREE.MeshStandardMaterial({
-        color: 0x444444,
+    // Create paths radiating out from the center (like Hunger Games sectors)
+    const pathCount = 8;
+    const pathMaterial = new THREE.MeshStandardMaterial({
+        color: 0xCCCCCC,
         roughness: 0.9,
         metalness: 0.1
     });
     
-    const mainRoad = new THREE.Mesh(roadGeometry, roadMaterial);
-    mainRoad.rotation.x = -Math.PI / 2;
-    mainRoad.position.set(0, 0.01, 0); // Slightly above ground to prevent z-fighting
-    mainRoad.receiveShadow = true;
+    for (let i = 0; i < pathCount; i++) {
+        const angle = (i / pathCount) * Math.PI * 2;
+        const pathGeometry = new THREE.PlaneGeometry(5, 60);
+        const path = new THREE.Mesh(pathGeometry, pathMaterial);
+        
+        path.rotation.x = -Math.PI / 2;
+        path.rotation.z = angle;
+        path.position.y = 0.01; // Slightly above ground
+        path.receiveShadow = true;
+        
+        // Add to both scenes
+        players.forEach(player => player.scene.add(path.clone()));
+    }
     
-    // Add road markings - dashed line
-    const lineGeometry = new THREE.PlaneGeometry(0.5, 40);
-    const lineMaterial = new THREE.MeshBasicMaterial({
-        color: 0xFFFFFF
+    // Create center circular plaza
+    const plazaGeometry = new THREE.CircleGeometry(20, 32);
+    const plazaMaterial = new THREE.MeshStandardMaterial({
+        color: 0xBDBDBD,
+        roughness: 0.7,
+        metalness: 0.2
     });
     
-    const roadLine = new THREE.Mesh(lineGeometry, lineMaterial);
-    roadLine.rotation.x = -Math.PI / 2;
-    roadLine.position.set(0, 0.02, 0); // Slightly above road
+    const plaza = new THREE.Mesh(plazaGeometry, plazaMaterial);
+    plaza.rotation.x = -Math.PI / 2;
+    plaza.position.y = 0.02; // Slightly above ground
+    plaza.receiveShadow = true;
     
-    // Add to both player scenes
-    players.forEach(player => {
-        player.scene.add(mainRoad.clone());
-        player.scene.add(roadLine.clone());
-    });
+    // Add to both scenes
+    players.forEach(player => player.scene.add(plaza.clone()));
     
-    // Create a cross street
-    const crossRoadGeometry = new THREE.PlaneGeometry(60, 10);
-    const crossRoad = new THREE.Mesh(crossRoadGeometry, roadMaterial);
-    crossRoad.rotation.x = -Math.PI / 2;
-    crossRoad.position.set(0, 0.01, 15); // Positioned north of center
-    crossRoad.receiveShadow = true;
-    
-    // Add to both player scenes
-    players.forEach(player => player.scene.add(crossRoad.clone()));
-    
-    // Create sidewalks
-    const sidewalkMaterial = new THREE.MeshStandardMaterial({
-        color: 0xCCCCCC,
-        roughness: 0.8
-    });
-    
-    // Sidewalk next to main road - west side
-    const sidewalk1 = new THREE.Mesh(
-        new THREE.PlaneGeometry(2, 80),
-        sidewalkMaterial
-    );
-    sidewalk1.rotation.x = -Math.PI / 2;
-    sidewalk1.position.set(-6, 0.02, 0);
-    
-    // Sidewalk next to main road - east side
-    const sidewalk2 = new THREE.Mesh(
-        new THREE.PlaneGeometry(2, 80),
-        sidewalkMaterial
-    );
-    sidewalk2.rotation.x = -Math.PI / 2;
-    sidewalk2.position.set(6, 0.02, 0);
-    
-    // Add to both player scenes
-    players.forEach(player => {
-        player.scene.add(sidewalk1.clone());
-        player.scene.add(sidewalk2.clone());
-    });
+    // Add some terrain variations (hills and depressions)
+    createTerrainVariations();
 }
 
-// Create Connect Four board
+// Create terrain variations (hills and depressions)
+function createTerrainVariations() {
+    // Create some hills around the map
+    const hillPositions = [
+        { x: -40, z: -30, height: 5, radius: 15 },
+        { x: 50, z: 20, height: 7, radius: 18 },
+        { x: -20, z: 60, height: 4, radius: 12 },
+        { x: 30, z: -50, height: 6, radius: 20 }
+    ];
+    
+    hillPositions.forEach(hill => {
+        const hillGeometry = new THREE.CylinderGeometry(hill.radius, hill.radius + 5, hill.height, 20);
+        const hillMaterial = new THREE.MeshStandardMaterial({
+            color: 0x8D6E63,
+            roughness: 0.9,
+            metalness: 0.1
+        });
+        
+        const hillMesh = new THREE.Mesh(hillGeometry, hillMaterial);
+        hillMesh.position.set(hill.x, hill.height / 2, hill.z);
+        hillMesh.receiveShadow = true;
+        hillMesh.castShadow = true;
+        
+        // Add to both scenes
+        players.forEach(player => player.scene.add(hillMesh.clone()));
+        
+        // Add to colliders
+        worldObjects.push({
+            type: 'cylinder',
+            radius: hill.radius,
+            height: hill.height,
+            position: new THREE.Vector3(hill.x, hill.height / 2, hill.z),
+            mesh: hillMesh
+        });
+    });
+    
+    // Create a water feature (lake)
+    const lakeGeometry = new THREE.CircleGeometry(25, 32);
+    const lakeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x4FC3F7,
+        roughness: 0.2,
+        metalness: 0.8,
+        transparent: true,
+        opacity: 0.8
+    });
+    
+    const lake = new THREE.Mesh(lakeGeometry, lakeMaterial);
+    lake.rotation.x = -Math.PI / 2;
+    lake.position.set(-40, 0.05, 40); // Slightly above ground to prevent z-fighting
+    lake.receiveShadow = true;
+    
+    // Add to both scenes
+    players.forEach(player => player.scene.add(lake.clone()));
+}
+
+// Create Connect Four board at center of the arena
 function createConnectFourBoard() {
     boardGroup = new THREE.Group();
     
@@ -280,7 +315,7 @@ function createConnectFourBoard() {
     }
     
     // Position the board at the center of the map
-    boardGroup.position.set(0, 12, -20); // Positioned towards the north side of the map
+    boardGroup.position.set(0, 12, 0); // Center of the map
     
     // Add to both player scenes
     players.forEach(player => {
@@ -288,15 +323,16 @@ function createConnectFourBoard() {
         player.scene.add(boardClone);
     });
     
-    // Add a platform under the board for players to stand on
-    const platformGeometry = new THREE.BoxGeometry(30, 1, 10);
+    // Add elevated platform under the board
+    const platformGeometry = new THREE.CylinderGeometry(18, 15, 3, 16);
     const platformMaterial = new THREE.MeshStandardMaterial({
-        color: 0x4CAF50,
-        roughness: 0.8
+        color: 0x9E9E9E,
+        roughness: 0.8,
+        metalness: 0.2
     });
     
     const platform = new THREE.Mesh(platformGeometry, platformMaterial);
-    platform.position.set(0, 1, -15); // In front of the board
+    platform.position.set(0, 1.5, 0); // Center under board
     platform.receiveShadow = true;
     
     // Add to both scenes
@@ -304,602 +340,1274 @@ function createConnectFourBoard() {
     
     // Add to collider list
     worldObjects.push({
-        type: 'box',
-        width: 30,
-        height: 1,
-        depth: 10,
-        position: platform.position,
+        type: 'cylinder',
+        radius: 18,
+        height: 3,
+        position: new THREE.Vector3(0, 1.5, 0),
         mesh: platform
     });
+    
+    // Add stairs to access the platform from 4 directions
+    createPlatformStairs();
 }
 
-// Create Nuketown-inspired buildings and structures
-function createNuketownStructures() {
-    // 1. Blue House (West Side)
-    createHouse(-25, 0, -25, 0x4fc3f7, 'blue');
+// Create stairs to the central platform
+function createPlatformStairs() {
+    const directions = [
+        { angle: 0, name: "North" },
+        { angle: Math.PI / 2, name: "East" },
+        { angle: Math.PI, name: "South" },
+        { angle: Math.PI * 3 / 2, name: "West" }
+    ];
     
-    // 2. Yellow House (East Side)
-    createHouse(25, 0, -25, 0xFFD54F, 'yellow');
-    
-    // 3. Central Gazebo
-    createGazebo(0, 0, 15);
-    
-    // 4. Bus (on the main road)
-    createBus(-15, 0, 32);
-    
-    // 5. Truck (east side)
-    createTruck(35, 0, 10);
-    
-    // 6. Crates and Barriers (scattered throughout)
-    createCrates();
-    
-    // 7. Mannequins (Nuketown classic feature)
-    createMannequins();
+    directions.forEach(dir => {
+        // Create stairs group
+        const stairsGroup = new THREE.Group();
+        
+        const stairWidth = 8;
+        const stairDepth = 1;
+        const stairHeight = 0.5;
+        const stairCount = 6;
+        
+        // Create each step
+        for (let i = 0; i < stairCount; i++) {
+            const stepGeometry = new THREE.BoxGeometry(stairWidth, stairHeight, stairDepth);
+            const stepMaterial = new THREE.MeshStandardMaterial({
+                color: 0x9E9E9E,
+                roughness: 0.8
+            });
+            
+            const step = new THREE.Mesh(stepGeometry, stepMaterial);
+            step.position.set(0, i * stairHeight, (stairCount - i) * stairDepth);
+            step.receiveShadow = true;
+            step.castShadow = true;
+            stairsGroup.add(step);
+            
+            // Add to colliders
+            const stepWorldPos = new THREE.Vector3(
+                Math.sin(dir.angle) * ((stairCount - i) * stairDepth + 15),
+                i * stairHeight + stairHeight/2,
+                Math.cos(dir.angle) * ((stairCount - i) * stairDepth + 15)
+            );
+            
+            worldObjects.push({
+                type: 'box',
+                width: stairWidth,
+                height: stairHeight,
+                depth: stairDepth,
+                position: stepWorldPos,
+                rotation: new THREE.Euler(0, dir.angle, 0),
+                mesh: step
+            });
+        }
+        
+        // Position the stairs relative to the central platform
+        stairsGroup.position.set(0, 0, 15); // Distance from center
+        stairsGroup.rotation.y = dir.angle;
+        
+        // Add to both scenes
+        players.forEach(player => {
+            player.scene.add(stairsGroup.clone());
+        });
+    });
 }
 
-// Create a house building
-function createHouse(x, y, z, color, name) {
-    // House group
-    const house = new THREE.Group();
-    house.position.set(x, y, z);
+// Create cornucopia structure around the board
+function createCornucopia() {
+    // Create a semi-circular structure around the board (like Hunger Games cornucopia)
+    const cornucopiaGroup = new THREE.Group();
     
-    // Main structure
-    const houseGeometry = new THREE.BoxGeometry(18, 10, 14);
-    const houseMaterial = new THREE.MeshStandardMaterial({
-        color: color,
-        roughness: 0.7,
-        metalness: 0.2
+    // Remove the large golden shell that was obscuring the board
+    // (The shell code that was here has been removed)
+    
+    // Create supporting pillars
+    const pillarPositions = [
+        { x: -15, z: -15 },
+        { x: 15, z: -15 },
+        { x: -25, z: -25 },
+        { x: 25, z: -25 }
+    ];
+    
+    pillarPositions.forEach(pos => {
+        const pillarGeometry = new THREE.CylinderGeometry(1.5, 1.5, 20, 8);
+        const pillarMaterial = new THREE.MeshStandardMaterial({
+            color: 0xDAA520, // Golden rod
+            roughness: 0.3,
+            metalness: 0.7
+        });
+        
+        const pillar = new THREE.Mesh(pillarGeometry, pillarMaterial);
+        pillar.position.set(pos.x, 10, pos.z);
+        pillar.castShadow = true;
+        cornucopiaGroup.add(pillar);
+        
+        // Add to colliders
+        worldObjects.push({
+            type: 'cylinder',
+            radius: 1.5,
+            height: 20,
+            position: new THREE.Vector3(pos.x, 10, pos.z),
+            mesh: pillar
+        });
     });
     
-    const houseBody = new THREE.Mesh(houseGeometry, houseMaterial);
-    houseBody.position.y = 5; // Half height
-    houseBody.castShadow = true;
-    houseBody.receiveShadow = true;
-    house.add(houseBody);
+    // Add to both scenes
+    players.forEach(player => {
+        player.scene.add(cornucopiaGroup.clone());
+    });
+}
+
+// Create forest environment
+function createForest() {
+    // Create clusters of trees
+    const forestClusters = [
+        { x: -50, z: -40, radius: 25, count: 12 },
+        { x: 60, z: 20, radius: 20, count: 10 },
+        { x: -30, z: 70, radius: 30, count: 15 },
+        { x: 40, z: -60, radius: 25, count: 12 },
+        { x: 80, z: -20, radius: 15, count: 8 },
+        { x: -70, z: 10, radius: 20, count: 10 }
+    ];
+    
+    forestClusters.forEach(cluster => {
+        for (let i = 0; i < cluster.count; i++) {
+            // Random position within the cluster radius
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.random() * cluster.radius;
+            const x = cluster.x + Math.sin(angle) * distance;
+            const z = cluster.z + Math.cos(angle) * distance;
+            
+            // Randomize tree appearance
+            const treeHeight = 8 + Math.random() * 6;
+            const trunkRadius = 0.6 + Math.random() * 0.4;
+            
+            createTree(x, z, treeHeight, trunkRadius);
+        }
+    });
+    
+    // Create some scattered trees
+    for (let i = 0; i < 30; i++) {
+        const x = (Math.random() - 0.5) * 180;
+        const z = (Math.random() - 0.5) * 180;
+        
+        // Don't place trees too close to the center
+        if (Math.sqrt(x*x + z*z) > 25) {
+            const treeHeight = 6 + Math.random() * 5;
+            const trunkRadius = 0.4 + Math.random() * 0.5;
+            createTree(x, z, treeHeight, trunkRadius);
+        }
+    }
+    
+    // Create undergrowth and bushes
+    for (let i = 0; i < 60; i++) {
+        const x = (Math.random() - 0.5) * 190;
+        const z = (Math.random() - 0.5) * 190;
+        
+        // Don't place bushes too close to the center
+        if (Math.sqrt(x*x + z*z) > 22) {
+            createBush(x, z);
+        }
+    }
+}
+
+// Create a tree with customizable parameters
+function createTree(x, z, height = 10, trunkRadius = 0.8) {
+    const tree = new THREE.Group();
+    tree.position.set(x, 0, z);
+    
+    // Trunk
+    const trunkGeometry = new THREE.CylinderGeometry(trunkRadius, trunkRadius * 1.2, height * 0.5, 8);
+    const trunkMaterial = new THREE.MeshStandardMaterial({
+        color: 0x8B4513,
+        roughness: 0.9
+    });
+    
+    const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+    trunk.position.y = height * 0.25;
+    trunk.castShadow = true;
+    tree.add(trunk);
+    
+    // Foliage (multiple layers)
+    const foliageColor = Math.random() > 0.2 ? 0x2E7D32 : 0x1B5E20; // Occasional darker tree
+    
+    const foliageGeometry = new THREE.ConeGeometry(height * 0.35, height * 0.65, 8);
+    const foliageMaterial = new THREE.MeshStandardMaterial({
+        color: foliageColor,
+        roughness: 0.8
+    });
+    
+    const foliageBottom = new THREE.Mesh(foliageGeometry, foliageMaterial);
+    foliageBottom.position.y = height * 0.5;
+    foliageBottom.castShadow = true;
+    tree.add(foliageBottom);
+    
+    const foliageMiddle = new THREE.Mesh(foliageGeometry, foliageMaterial);
+    foliageMiddle.position.y = height * 0.65;
+    foliageMiddle.scale.set(0.8, 0.8, 0.8);
+    foliageMiddle.castShadow = true;
+    tree.add(foliageMiddle);
+    
+    const foliageTop = new THREE.Mesh(foliageGeometry, foliageMaterial);
+    foliageTop.position.y = height * 0.8;
+    foliageTop.scale.set(0.5, 0.5, 0.5);
+    foliageTop.castShadow = true;
+    tree.add(foliageTop);
+    
+    // Add to both scenes
+    players.forEach(player => {
+        player.scene.add(tree.clone());
+    });
+    
+    // Add trunk to colliders
+    worldObjects.push({
+        type: 'cylinder',
+        radius: trunkRadius,
+        height: height * 0.5,
+        position: new THREE.Vector3(x, height * 0.25, z),
+        mesh: trunk
+    });
+}
+
+// Create a bush
+function createBush(x, z) {
+    const bush = new THREE.Group();
+    bush.position.set(x, 0, z);
+    
+    // Random properties
+    const bushSize = 0.7 + Math.random() * 1.3;
+    const bushColor = 0x2E7D32; // Base green color
+    
+    // Create bush using multiple spheres
+    const bushGeometry = new THREE.SphereGeometry(bushSize, 8, 8);
+    const bushMaterial = new THREE.MeshStandardMaterial({
+        color: bushColor,
+        roughness: 0.9
+    });
+    
+    // Main bush part
+    const mainBush = new THREE.Mesh(bushGeometry, bushMaterial);
+    mainBush.position.y = bushSize;
+    mainBush.castShadow = true;
+    bush.add(mainBush);
+    
+    // Add some variations with smaller spheres
+    const variations = Math.floor(2 + Math.random() * 3);
+    for (let i = 0; i < variations; i++) {
+        const variationSize = bushSize * (0.6 + Math.random() * 0.4);
+        const variation = new THREE.Mesh(
+            new THREE.SphereGeometry(variationSize, 8, 8),
+            bushMaterial
+        );
+        
+        const angle = Math.random() * Math.PI * 2;
+        const distance = bushSize * 0.5;
+        
+        variation.position.set(
+            Math.sin(angle) * distance,
+            bushSize * 0.7 + Math.random() * bushSize * 0.6,
+            Math.cos(angle) * distance
+        );
+        
+        variation.castShadow = true;
+        bush.add(variation);
+    }
+    
+    // Add to both scenes
+    players.forEach(player => {
+        player.scene.add(bush.clone());
+    });
+    
+    // Add to colliders (simple bounding sphere)
+    worldObjects.push({
+        type: 'sphere',
+        radius: bushSize * 1.5,
+        position: new THREE.Vector3(x, bushSize, z),
+        mesh: mainBush
+    });
+}
+
+// Create scattered structures around the arena
+function createScatteredStructures() {
+    // Create survival stations (places for tubes to connect)
+    const stationPositions = [
+        { x: -70, y: 0, z: -50, type: "watchtower" },
+        { x: 60, y: 0, z: -60, type: "ruins" },
+        { x: -60, y: 0, z: 70, type: "cave" },
+        { x: 80, y: 0, z: 30, type: "bunker" },
+        { x: 0, y: 0, z: -80, type: "camp" },
+        { x: -80, y: 0, z: 0, type: "shrine" },
+        { x: 50, y: 0, z: 70, type: "hut" }
+    ];
+    
+    stationPositions.forEach(station => {
+        switch(station.type) {
+            case "watchtower":
+                createWatchtower(station.x, station.y, station.z);
+                break;
+            case "ruins":
+                createRuins(station.x, station.y, station.z);
+                break;
+            case "cave":
+                createCave(station.x, station.y, station.z);
+                break;
+            case "bunker":
+                createBunker(station.x, station.y, station.z);
+                break;
+            case "camp":
+                createCamp(station.x, station.y, station.z);
+                break;
+            case "shrine":
+                createShrine(station.x, station.y, station.z);
+                break;
+            case "hut":
+                createHut(station.x, station.y, station.z);
+                break;
+        }
+    });
+    
+    // Add smaller resource crates scattered around the map
+    for (let i = 0; i < 15; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 30 + Math.random() * 50; // Between 30-80 units from center
+        
+        const x = Math.sin(angle) * distance;
+        const z = Math.cos(angle) * distance;
+        
+        createSupplyCrate(x, z);
+    }
+}
+
+// Create a watchtower
+function createWatchtower(x, y, z) {
+    const tower = new THREE.Group();
+    tower.position.set(x, y, z);
+    
+    // Base platform
+    const baseGeometry = new THREE.BoxGeometry(10, 1, 10);
+    const baseMaterial = new THREE.MeshStandardMaterial({
+        color: 0x8B4513,
+        roughness: 0.8
+    });
+    
+    const base = new THREE.Mesh(baseGeometry, baseMaterial);
+    base.position.y = 0.5;
+    base.receiveShadow = true;
+    base.castShadow = true;
+    tower.add(base);
     
     // Add to colliders
     worldObjects.push({
         type: 'box',
-        width: 18,
-        height: 10,
-        depth: 14,
-        position: new THREE.Vector3(x, y + 5, z),
-        mesh: houseBody
+        width: 10,
+        height: 1,
+        depth: 10,
+        position: new THREE.Vector3(x, y + 0.5, z),
+        mesh: base
     });
     
-    // Roof
-    const roofGeometry = new THREE.ConeGeometry(15, 6, 4);
-    const roofMaterial = new THREE.MeshStandardMaterial({
-        color: 0x8B4513, // Brown roof
+    // Support columns
+    const columnPositions = [
+        { x: -4, z: -4 },
+        { x: 4, z: -4 },
+        { x: -4, z: 4 },
+        { x: 4, z: 4 }
+    ];
+    
+    columnPositions.forEach(pos => {
+        const columnGeometry = new THREE.BoxGeometry(1, 15, 1);
+        const column = new THREE.Mesh(columnGeometry, baseMaterial);
+        column.position.set(pos.x, 8, pos.z);
+        column.castShadow = true;
+        tower.add(column);
+        
+        // Add to colliders
+        worldObjects.push({
+            type: 'box',
+            width: 1,
+            height: 15,
+            depth: 1,
+            position: new THREE.Vector3(x + pos.x, y + 8, z + pos.z),
+            mesh: column
+        });
+    });
+    
+    // Top platform
+    const topGeometry = new THREE.BoxGeometry(12, 1, 12);
+    const top = new THREE.Mesh(topGeometry, baseMaterial);
+    top.position.y = 16;
+    top.receiveShadow = true;
+    top.castShadow = true;
+    tower.add(top);
+    
+    // Add to colliders
+    worldObjects.push({
+        type: 'box',
+        width: 12,
+        height: 1,
+        depth: 12,
+        position: new THREE.Vector3(x, y + 16, z),
+        mesh: top
+    });
+    
+    // Add railing
+    const railingGeometry = new THREE.BoxGeometry(12, 1, 0.5);
+    const railingMaterial = new THREE.MeshStandardMaterial({
+        color: 0x8B4513,
         roughness: 0.8
     });
     
-    const roof = new THREE.Mesh(roofGeometry, roofMaterial);
-    roof.position.y = 13; // Top of the house
-    roof.rotation.y = Math.PI / 4; // Rotate 45 degrees
-    roof.castShadow = true;
-    house.add(roof);
+    // Front railing
+    const frontRailing = new THREE.Mesh(railingGeometry, railingMaterial);
+    frontRailing.position.set(0, 17, 5.75);
+    tower.add(frontRailing);
     
-    // Door
-    const doorGeometry = new THREE.PlaneGeometry(3, 6);
-    const doorMaterial = new THREE.MeshStandardMaterial({
+    // Back railing
+    const backRailing = new THREE.Mesh(railingGeometry, railingMaterial);
+    backRailing.position.set(0, 17, -5.75);
+    tower.add(backRailing);
+    
+    // Left railing
+    const leftRailing = new THREE.Mesh(railingGeometry, railingMaterial);
+    leftRailing.rotation.y = Math.PI / 2;
+    leftRailing.position.set(-5.75, 17, 0);
+    tower.add(leftRailing);
+    
+    // Right railing
+    const rightRailing = new THREE.Mesh(railingGeometry, railingMaterial);
+    rightRailing.rotation.y = Math.PI / 2;
+    rightRailing.position.set(5.75, 17, 0);
+    tower.add(rightRailing);
+    
+    // Ladder
+    const ladderGeometry = new THREE.BoxGeometry(1, 15, 2);
+    const ladderMaterial = new THREE.MeshStandardMaterial({
         color: 0x8B4513,
-        roughness: 0.7,
-        side: THREE.DoubleSide
-    });
-    
-    const door = new THREE.Mesh(doorGeometry, doorMaterial);
-    door.position.set(0, 3, 7.01); // Front of house
-    house.add(door);
-    
-    // Windows
-    const windowGeometry = new THREE.PlaneGeometry(3, 2);
-    const windowMaterial = new THREE.MeshStandardMaterial({
-        color: 0xE3F2FD,
+        roughness: 0.9,
         transparent: true,
-        opacity: 0.7,
-        side: THREE.DoubleSide
+        opacity: 0.8
     });
     
-    // Front windows
-    const frontWindow1 = new THREE.Mesh(windowGeometry, windowMaterial);
-    frontWindow1.position.set(-4, 5, 7.01);
-    house.add(frontWindow1);
+    const ladder = new THREE.Mesh(ladderGeometry, ladderMaterial);
+    ladder.position.set(0, 8, 5);
+    tower.add(ladder);
     
-    const frontWindow2 = new THREE.Mesh(windowGeometry, windowMaterial);
-    frontWindow2.position.set(4, 5, 7.01);
-    house.add(frontWindow2);
-    
-    // Side windows
-    const sideWindow1 = new THREE.Mesh(windowGeometry, windowMaterial);
-    sideWindow1.position.set(9.01, 5, 0);
-    sideWindow1.rotation.y = Math.PI / 2;
-    house.add(sideWindow1);
-    
-    const sideWindow2 = new THREE.Mesh(windowGeometry, windowMaterial);
-    sideWindow2.position.set(-9.01, 5, 0);
-    sideWindow2.rotation.y = Math.PI / 2;
-    house.add(sideWindow2);
-    
-    // House sign (indicates tube entry point)
-    const signGeometry = new THREE.BoxGeometry(5, 2, 0.5);
-    const signMaterial = new THREE.MeshStandardMaterial({
-        color: 0xFFFFFF,
-        emissive: 0xFFFFFF,
-        emissiveIntensity: 0.2
+    // Add to both scenes
+    players.forEach(player => {
+        player.scene.add(tower.clone());
     });
+}
+
+// Create ruins
+function createRuins(x, y, z) {
+    const ruins = new THREE.Group();
+    ruins.position.set(x, y, z);
     
-    const sign = new THREE.Mesh(signGeometry, signMaterial);
-    sign.position.set(0, 12, 8);
-    sign.castShadow = true;
-    house.add(sign);
+    // Create broken walls
+    const wallPositions = [
+        { x: 0, z: 0, width: 10, height: 3, depth: 1, rotation: 0 },
+        { x: -4, z: 5, width: 8, height: 2, depth: 1, rotation: Math.PI/2 },
+        { x: 5, z: -3, width: 6, height: 4, depth: 1, rotation: Math.PI/4 },
+        { x: -5, z: -4, width: 7, height: 2, depth: 1, rotation: -Math.PI/6 }
+    ];
     
-    // Steps to the door
-    const stepsGeometry = new THREE.BoxGeometry(5, 1, 3);
-    const stepsMaterial = new THREE.MeshStandardMaterial({
+    const wallMaterial = new THREE.MeshStandardMaterial({
         color: 0x9E9E9E,
         roughness: 0.9
     });
     
-    const steps = new THREE.Mesh(stepsGeometry, stepsMaterial);
-    steps.position.set(0, 0.5, 9);
-    steps.receiveShadow = true;
-    house.add(steps);
+    wallPositions.forEach(wall => {
+        const wallGeometry = new THREE.BoxGeometry(wall.width, wall.height, wall.depth);
+        const wallMesh = new THREE.Mesh(wallGeometry, wallMaterial);
+        
+        wallMesh.position.set(wall.x, wall.height/2, wall.z);
+        wallMesh.rotation.y = wall.rotation;
+        wallMesh.castShadow = true;
+        wallMesh.receiveShadow = true;
+        ruins.add(wallMesh);
+        
+        // Add to colliders
+        worldObjects.push({
+            type: 'box',
+            width: wall.width,
+            height: wall.height,
+            depth: wall.depth,
+            position: new THREE.Vector3(
+                x + wall.x, 
+                y + wall.height/2, 
+                z + wall.z
+            ),
+            rotation: new THREE.Euler(0, wall.rotation, 0),
+            mesh: wallMesh
+        });
+    });
+    
+    // Create broken columns
+    const ruinColumnPositions = [
+        { x: 3, z: 3, height: 5 },
+        { x: -5, z: 2, height: 3 },
+        { x: 4, z: -4, height: 2 }
+    ];
+    
+    const columnMaterial = new THREE.MeshStandardMaterial({
+        color: 0xCCCCCC,
+        roughness: 0.7
+    });
+    
+    ruinColumnPositions.forEach(column => {
+        const columnGeometry = new THREE.CylinderGeometry(1, 1, column.height, 16);
+        const columnMesh = new THREE.Mesh(columnGeometry, columnMaterial);
+        
+        columnMesh.position.set(column.x, column.height/2, column.z);
+        columnMesh.castShadow = true;
+        ruins.add(columnMesh);
+        
+        // Add to colliders
+        worldObjects.push({
+            type: 'cylinder',
+            radius: 1,
+            height: column.height,
+            position: new THREE.Vector3(
+                x + column.x,
+                y + column.height/2,
+                z + column.z
+            ),
+            mesh: columnMesh
+        });
+    });
+    
+    // Add rubble piles
+    for (let i = 0; i < 5; i++) {
+        const rubbleX = (Math.random() - 0.5) * 12;
+        const rubbleZ = (Math.random() - 0.5) * 12;
+        
+        const rubbleGeometry = new THREE.SphereGeometry(1 + Math.random(), 5, 5);
+        const rubbleMaterial = new THREE.MeshStandardMaterial({
+            color: 0xAAAAAA,
+            roughness: 1.0
+        });
+        
+        const rubble = new THREE.Mesh(rubbleGeometry, rubbleMaterial);
+        rubble.position.set(rubbleX, 0.5, rubbleZ);
+        rubble.scale.y = 0.5; // Flatten the rubble
+        rubble.rotation.set(
+            Math.random() * Math.PI,
+            Math.random() * Math.PI,
+            Math.random() * Math.PI
+        );
+        rubble.castShadow = true;
+        rubble.receiveShadow = true;
+        ruins.add(rubble);
+    }
+    
+    // Add to both scenes
+    players.forEach(player => {
+        player.scene.add(ruins.clone());
+    });
+}
+
+// Create a cave
+function createCave(x, y, z) {
+    const cave = new THREE.Group();
+    cave.position.set(x, y, z);
+    
+    // Create cave mouth (arch)
+    const archMaterial = new THREE.MeshStandardMaterial({
+        color: 0x5D4037,
+        roughness: 1.0,
+        metalness: 0.2
+    });
+    
+    // Create cave walls using toruses
+    const outerWallGeometry = new THREE.TorusGeometry(8, 4, 16, 16, Math.PI);
+    const outerWall = new THREE.Mesh(outerWallGeometry, archMaterial);
+    outerWall.rotation.x = -Math.PI / 2;
+    outerWall.position.z = 4;
+    outerWall.position.y = 8;
+    outerWall.castShadow = true;
+    cave.add(outerWall);
+    
+    // Create cave floor
+    const floorGeometry = new THREE.CircleGeometry(8, 16, 0, Math.PI);
+    const floorMaterial = new THREE.MeshStandardMaterial({
+        color: 0x3E2723,
+        roughness: 0.9
+    });
+    
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.z = 4;
+    floor.receiveShadow = true;
+    cave.add(floor);
+    
+    // Create cave interior (blackness)
+    const interiorGeometry = new THREE.BoxGeometry(15, 8, 10);
+    const interiorMaterial = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        transparent: true,
+        opacity: 0.9
+    });
+    
+    const interior = new THREE.Mesh(interiorGeometry, interiorMaterial);
+    interior.position.set(0, 4, -5);
+    cave.add(interior);
+    
+    // Add some rocks at the entrance
+    const rockPositions = [
+        { x: -5, z: 8, scale: 1.5 },
+        { x: 6, z: 7, scale: 2 },
+        { x: 3, z: 9, scale: 1 },
+        { x: -4, z: 10, scale: 1.2 }
+    ];
+    
+    const rockMaterial = new THREE.MeshStandardMaterial({
+        color: 0x616161,
+        roughness: 0.9
+    });
+    
+    rockPositions.forEach(pos => {
+        const rockGeometry = new THREE.DodecahedronGeometry(pos.scale, 0);
+        const rock = new THREE.Mesh(rockGeometry, rockMaterial);
+        
+        rock.position.set(pos.x, pos.scale/2, pos.z);
+        rock.rotation.set(
+            Math.random() * Math.PI,
+            Math.random() * Math.PI,
+            Math.random() * Math.PI
+        );
+        rock.castShadow = true;
+        cave.add(rock);
+        
+        // Add to colliders
+        worldObjects.push({
+            type: 'sphere',
+            radius: pos.scale,
+            position: new THREE.Vector3(
+                x + pos.x,
+                y + pos.scale/2,
+                z + pos.z
+            ),
+            mesh: rock
+        });
+    });
+    
+    // Add to both scenes
+    players.forEach(player => {
+        player.scene.add(cave.clone());
+    });
+}
+
+// Create a bunker
+function createBunker(x, y, z) {
+    const bunker = new THREE.Group();
+    bunker.position.set(x, y, z);
+    
+    // Create main bunker structure
+    const bunkerGeometry = new THREE.BoxGeometry(12, 4, 8);
+    const bunkerMaterial = new THREE.MeshStandardMaterial({
+        color: 0x5D4037,
+        roughness: 0.9,
+        metalness: 0.2
+    });
+    
+    const bunkerBody = new THREE.Mesh(bunkerGeometry, bunkerMaterial);
+    bunkerBody.position.y = 2;
+    bunkerBody.castShadow = true;
+    bunkerBody.receiveShadow = true;
+    bunker.add(bunkerBody);
     
     // Add to colliders
     worldObjects.push({
         type: 'box',
-        width: 5,
-        height: 1,
-        depth: 3,
-        position: new THREE.Vector3(x, y + 0.5, z + 9),
-        mesh: steps
+        width: 12,
+        height: 4,
+        depth: 8,
+        position: new THREE.Vector3(x, y + 2, z),
+        mesh: bunkerBody
     });
     
-    // Add house to both scenes
+    // Create roof
+    const roofGeometry = new THREE.BoxGeometry(14, 1, 10);
+    const roofMaterial = new THREE.MeshStandardMaterial({
+        color: 0x4E342E,
+        roughness: 0.7,
+        metalness: 0.3
+    });
+    
+    const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+    roof.position.y = 4.5;
+    roof.castShadow = true;
+    bunker.add(roof);
+    
+    // Add entrance (hole in front)
+    const entranceGeometry = new THREE.BoxGeometry(3, 2.5, 1);
+    const entranceMaterial = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        transparent: true,
+        opacity: 0.8
+    });
+    
+    const entrance = new THREE.Mesh(entranceGeometry, entranceMaterial);
+    entrance.position.set(0, 1.25, 4); // Front center
+    bunker.add(entrance);
+    
+    // Add some metal details
+    const detailMaterial = new THREE.MeshStandardMaterial({
+        color: 0x757575,
+        roughness: 0.5,
+        metalness: 0.8
+    });
+    
+    // Add horizontal metal band
+    const bandGeometry = new THREE.BoxGeometry(12.2, 0.5, 8.2);
+    const band = new THREE.Mesh(bandGeometry, detailMaterial);
+    band.position.y = 3;
+    bunker.add(band);
+    
+    // Add ventilation pipe
+    const pipeGeometry = new THREE.CylinderGeometry(0.5, 0.5, 3, 8);
+    const pipe = new THREE.Mesh(pipeGeometry, detailMaterial);
+    pipe.position.set(4, 3, 0);
+    pipe.rotation.x = Math.PI / 2;
+    bunker.add(pipe);
+    
+    // Add some sandbags for defense
+    const sandbagMaterial = new THREE.MeshStandardMaterial({
+        color: 0xA1887F,
+        roughness: 1.0
+    });
+    
+    const sandbagPositions = [
+        { x: -5, z: 5, rot: 0 },
+        { x: -3, z: 5, rot: 0 },
+        { x: -1, z: 5, rot: 0 },
+        { x: 2, z: 5, rot: 0 },
+        { x: 4, z: 5, rot: 0 },
+        { x: 5, z: 3, rot: Math.PI/2 },
+        { x: 5, z: 1, rot: Math.PI/2 },
+        { x: 5, z: -1, rot: Math.PI/2 },
+        { x: 5, z: -3, rot: Math.PI/2 }
+    ];
+    
+    sandbagPositions.forEach(pos => {
+        const sandbagGeometry = new THREE.CylinderGeometry(0.5, 0.5, 1.5, 8);
+        const sandbag = new THREE.Mesh(sandbagGeometry, sandbagMaterial);
+        
+        sandbag.position.set(pos.x, 0.5, pos.z);
+        sandbag.rotation.x = Math.PI / 2;
+        sandbag.rotation.z = pos.rot;
+        bunker.add(sandbag);
+    });
+    
+    // Add to both scenes
     players.forEach(player => {
-        player.scene.add(house.clone());
+        player.scene.add(bunker.clone());
     });
-    
-    // House name (data only)
-    house.userData = { name: name + "_house" };
 }
 
-// Create a gazebo in the center
-function createGazebo(x, y, z) {
-    // Gazebo group
-    const gazebo = new THREE.Group();
-    gazebo.position.set(x, y, z);
+// Create a camp site
+function createCamp(x, y, z) {
+    const camp = new THREE.Group();
+    camp.position.set(x, y, z);
     
-    // Floor
-    const floorGeometry = new THREE.CylinderGeometry(8, 8, 0.5, 8);
-    const floorMaterial = new THREE.MeshStandardMaterial({
-        color: 0x8B4513,
+    // Create tent
+    const tentMaterial = new THREE.MeshStandardMaterial({
+        color: 0x004D40,  // Dark teal
+        roughness: 0.9
+    });
+    
+    // Tent body (triangular prism)
+    const tentGeometry = new THREE.CylinderGeometry(0.1, 3, 4, 3);
+    const tent = new THREE.Mesh(tentGeometry, tentMaterial);
+    tent.position.set(0, 2, 0);
+    tent.rotation.y = Math.PI/6;
+    tent.rotation.x = Math.PI/2;
+    tent.castShadow = true;
+    camp.add(tent);
+    
+    // Add to colliders
+    worldObjects.push({
+        type: 'cylinder',
+        radius: 3,
+        height: 4,
+        position: new THREE.Vector3(x, y + 2, z),
+        rotation: new THREE.Euler(Math.PI/2, Math.PI/6, 0),
+        mesh: tent
+    });
+    
+    // Create campfire
+    const fireStonePositions = [
+        { x: 4, z: 0, angle: 0 },
+        { x: 4*Math.cos(Math.PI*2/5), z: 4*Math.sin(Math.PI*2/5), angle: Math.PI*2/5 },
+        { x: 4*Math.cos(Math.PI*4/5), z: 4*Math.sin(Math.PI*4/5), angle: Math.PI*4/5 },
+        { x: 4*Math.cos(Math.PI*6/5), z: 4*Math.sin(Math.PI*6/5), angle: Math.PI*6/5 },
+        { x: 4*Math.cos(Math.PI*8/5), z: 4*Math.sin(Math.PI*8/5), angle: Math.PI*8/5 }
+    ];
+    
+    const stoneMaterial = new THREE.MeshStandardMaterial({
+        color: 0x757575,
+        roughness: 1.0
+    });
+    
+    fireStonePositions.forEach(pos => {
+        const stoneGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const stone = new THREE.Mesh(stoneGeometry, stoneMaterial);
+        
+        stone.position.set(pos.x, 0.5, pos.z);
+        stone.rotation.set(
+            Math.random() * Math.PI/4,
+            Math.random() * Math.PI/4,
+            Math.random() * Math.PI/4
+        );
+        stone.castShadow = true;
+        camp.add(stone);
+    });
+    
+    // Create fire logs
+    const logMaterial = new THREE.MeshStandardMaterial({
+        color: 0x5D4037,
+        roughness: 0.9
+    });
+    
+    const logGeometry = new THREE.CylinderGeometry(0.3, 0.3, 3, 8);
+    
+    for (let i = 0; i < 3; i++) {
+        const log = new THREE.Mesh(logGeometry, logMaterial);
+        log.position.set(0, 0.3, 0);
+        log.rotation.y = i * Math.PI / 3;
+        log.rotation.x = Math.PI / 2;
+        camp.add(log);
+    }
+    
+    // Create fire glow (simple glowing sphere)
+    const glowGeometry = new THREE.SphereGeometry(1, 16, 16);
+    const glowMaterial = new THREE.MeshBasicMaterial({
+        color: 0xFF5722,
+        transparent: true,
+        opacity: 0.7
+    });
+    
+    const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+    glow.position.set(0, 0.5, 0);
+    camp.add(glow);
+    
+    // Add a point light for the fire
+    const fireLight = new THREE.PointLight(0xFF5722, 1, 15);
+    fireLight.position.set(0, 1, 0);
+    camp.add(fireLight);
+    
+    // Create some logs as seating
+    const seatPositions = [
+        { x: -3, z: 2, rot: 0 },
+        { x: 2, z: -3, rot: Math.PI/3 }
+    ];
+    
+    seatPositions.forEach(pos => {
+        const seatLogGeometry = new THREE.CylinderGeometry(0.5, 0.5, 4, 8);
+        const seatLog = new THREE.Mesh(seatLogGeometry, logMaterial);
+        
+        seatLog.position.set(pos.x, 0.5, pos.z);
+        seatLog.rotation.y = pos.rot;
+        seatLog.castShadow = true;
+        camp.add(seatLog);
+        
+        // Add to colliders
+        worldObjects.push({
+            type: 'cylinder',
+            radius: 0.5,
+            height: 4,
+            position: new THREE.Vector3(x + pos.x, y + 0.5, z + pos.z),
+            rotation: new THREE.Euler(0, pos.rot, 0),
+            mesh: seatLog
+        });
+    });
+    
+    // Add some supplies
+    const crate = new THREE.Mesh(
+        new THREE.BoxGeometry(1.5, 1.5, 1.5),
+        new THREE.MeshStandardMaterial({
+            color: 0x8D6E63,
+            roughness: 0.8
+        })
+    );
+    crate.position.set(-2, 0.75, -2);
+    crate.castShadow = true;
+    camp.add(crate);
+    
+    // Add to colliders
+    worldObjects.push({
+        type: 'box',
+        width: 1.5,
+        height: 1.5,
+        depth: 1.5,
+        position: new THREE.Vector3(x - 2, y + 0.75, z - 2),
+        mesh: crate
+    });
+    
+    // Add to both scenes
+    players.forEach(player => {
+        player.scene.add(camp.clone());
+    });
+    
+    // Add to animation objects for fire flickering
+    const fireAnimation = {
+        time: 0,
+        glow: glow,
+        light: fireLight,
+        basePosition: new THREE.Vector3(x, y, z),
+        update: function(deltaTime) {
+            this.time += deltaTime;
+            const flicker = 0.8 + 0.4 * Math.sin(this.time * 10);
+            
+            // Apply to both scenes
+            players.forEach(player => {
+                const fires = player.scene.children.filter(child => 
+                    child instanceof THREE.Group && 
+                    Math.abs(child.position.x - this.basePosition.x) < 0.1 &&
+                    Math.abs(child.position.z - this.basePosition.z) < 0.1
+                );
+                
+                fires.forEach(campGroup => {
+                    // Find the glow
+                    const glowObj = campGroup.children.find(c => 
+                        c.geometry && c.geometry.type === 'SphereGeometry' && 
+                        c.material && c.material.opacity < 1
+                    );
+                    
+                    if (glowObj) {
+                        glowObj.scale.set(flicker, flicker, flicker);
+                        glowObj.material.opacity = 0.5 + 0.3 * Math.sin(this.time * 5);
+                    }
+                    
+                    // Find the light
+                    const lightObj = campGroup.children.find(c => c instanceof THREE.PointLight);
+                    if (lightObj) {
+                        lightObj.intensity = 0.8 + 0.4 * Math.sin(this.time * 8);
+                    }
+                });
+            });
+        }
+    };
+    
+    animationObjects.push(fireAnimation);
+}
+
+// Create a shrine or altar
+function createShrine(x, y, z) {
+    const shrine = new THREE.Group();
+    shrine.position.set(x, y, z);
+    
+    // Create base platform
+    const baseGeometry = new THREE.CylinderGeometry(8, 9, 1, 8);
+    const baseMaterial = new THREE.MeshStandardMaterial({
+        color: 0x9E9E9E,
         roughness: 0.8
     });
     
-    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-    floor.position.y = 0.25;
-    floor.receiveShadow = true;
-    gazebo.add(floor);
+    const base = new THREE.Mesh(baseGeometry, baseMaterial);
+    base.position.y = 0.5;
+    base.receiveShadow = true;
+    shrine.add(base);
     
     // Add to colliders
     worldObjects.push({
         type: 'cylinder',
         radius: 8,
-        height: 0.5,
-        position: new THREE.Vector3(x, y + 0.25, z),
-        mesh: floor
+        height: 1,
+        position: new THREE.Vector3(x, y + 0.5, z),
+        mesh: base
     });
     
-    // Roof
-    const roofGeometry = new THREE.ConeGeometry(9, 4, 8);
-    const roofMaterial = new THREE.MeshStandardMaterial({
-        color: 0x795548,
+    // Create steps
+    const stepMaterial = new THREE.MeshStandardMaterial({
+        color: 0xBDBDBD,
         roughness: 0.7
     });
     
-    const roof = new THREE.Mesh(roofGeometry, roofMaterial);
-    roof.position.y = 8;
-    roof.castShadow = true;
-    gazebo.add(roof);
+    const step1Geometry = new THREE.CylinderGeometry(6, 7, 0.5, 8);
+    const step1 = new THREE.Mesh(step1Geometry, stepMaterial);
+    step1.position.y = 1.25;
+    step1.receiveShadow = true;
+    shrine.add(step1);
     
-    // Columns
-    const columnGeometry = new THREE.CylinderGeometry(0.5, 0.5, 8, 8);
-    const columnMaterial = new THREE.MeshStandardMaterial({
-        color: 0xDDDDDD,
-        roughness: 0.5
+    // Add to colliders
+    worldObjects.push({
+        type: 'cylinder',
+        radius: 6,
+        height: 0.5,
+        position: new THREE.Vector3(x, y + 1.25, z),
+        mesh: step1
     });
     
-    // Create 8 columns around the perimeter
-    for (let i = 0; i < 8; i++) {
-        const angle = (i / 8) * Math.PI * 2;
-        const columnX = Math.sin(angle) * 7;
-        const columnZ = Math.cos(angle) * 7;
+    const step2Geometry = new THREE.CylinderGeometry(5, 6, 0.5, 8);
+    const step2 = new THREE.Mesh(step2Geometry, stepMaterial);
+    step2.position.y = 1.75;
+    step2.receiveShadow = true;
+    shrine.add(step2);
+    
+    // Add to colliders
+    worldObjects.push({
+        type: 'cylinder',
+        radius: 5,
+        height: 0.5,
+        position: new THREE.Vector3(x, y + 1.75, z),
+        mesh: step2
+    });
+    
+    // Create central altar
+    const altarGeometry = new THREE.BoxGeometry(4, 2, 4);
+    const altarMaterial = new THREE.MeshStandardMaterial({
+        color: 0x424242,
+        roughness: 0.5,
+        metalness: 0.5
+    });
+    
+    const altar = new THREE.Mesh(altarGeometry, altarMaterial);
+    altar.position.y = 3;
+    altar.castShadow = true;
+    shrine.add(altar);
+    
+    // Add to colliders
+    worldObjects.push({
+        type: 'box',
+        width: 4,
+        height: 2,
+        depth: 4,
+        position: new THREE.Vector3(x, y + 3, z),
+        mesh: altar
+    });
+    
+    // Create central object (glowing sphere)
+    const orbGeometry = new THREE.SphereGeometry(1.2, 32, 32);
+    const orbMaterial = new THREE.MeshBasicMaterial({
+        color: 0x4DD0E1,
+        emissive: 0x4DD0E1,
+        emissiveIntensity: 1
+    });
+    
+    const orb = new THREE.Mesh(orbGeometry, orbMaterial);
+    orb.position.y = 4.5;
+    shrine.add(orb);
+    
+    // Add point light at orb
+    const orbLight = new THREE.PointLight(0x4DD0E1, 1, 20);
+    orbLight.position.y = 4.5;
+    shrine.add(orbLight);
+    
+    // Add pillars around the shrine
+    const pillarCount = 6;
+    const radius = 7;
+    
+    for (let i = 0; i < pillarCount; i++) {
+        const angle = (i / pillarCount) * Math.PI * 2;
+        const pX = Math.sin(angle) * radius;
+        const pZ = Math.cos(angle) * radius;
         
-        const column = new THREE.Mesh(columnGeometry, columnMaterial);
-        column.position.set(columnX, 4, columnZ);
-        column.castShadow = true;
-        gazebo.add(column);
+        const pillarGeometry = new THREE.CylinderGeometry(0.5, 0.5, 8, 8);
+        const pillar = new THREE.Mesh(pillarGeometry, baseMaterial);
+        
+        pillar.position.set(pX, 4, pZ);
+        pillar.castShadow = true;
+        shrine.add(pillar);
         
         // Add to colliders
         worldObjects.push({
             type: 'cylinder',
             radius: 0.5,
             height: 8,
-            position: new THREE.Vector3(x + columnX, y + 4, z + columnZ),
-            mesh: column
+            position: new THREE.Vector3(x + pX, y + 4, z + pZ),
+            mesh: pillar
         });
     }
     
-    // Add gazebo to both scenes
+    // Add to both scenes
     players.forEach(player => {
-        player.scene.add(gazebo.clone());
+        player.scene.add(shrine.clone());
     });
+    
+    // Add animation for the orb
+    const orbAnimation = {
+        time: 0,
+        basePosition: new THREE.Vector3(x, y + 4.5, z),
+        update: function(deltaTime) {
+            this.time += deltaTime;
+            const hoverHeight = 0.5 * Math.sin(this.time);
+            const pulseIntensity = 0.7 + 0.5 * Math.sin(this.time * 2);
+            
+            players.forEach(player => {
+                const shrines = player.scene.children.filter(child => 
+                    child instanceof THREE.Group && 
+                    Math.abs(child.position.x - (this.basePosition.x - x)) < 0.1 &&
+                    Math.abs(child.position.z - (this.basePosition.z - z)) < 0.1
+                );
+                
+                shrines.forEach(shrineGroup => {
+                    // Find the orb
+                    const orbObj = shrineGroup.children.find(c => 
+                        c.geometry && c.geometry.type === 'SphereGeometry' && 
+                        c.position.y > 4
+                    );
+                    
+                    if (orbObj) {
+                        orbObj.position.y = 4.5 + hoverHeight;
+                    }
+                    
+                    // Find the light
+                    const lightObj = shrineGroup.children.find(c => c instanceof THREE.PointLight);
+                    if (lightObj) {
+                        lightObj.position.y = 4.5 + hoverHeight;
+                        lightObj.intensity = pulseIntensity;
+                    }
+                });
+            });
+        }
+    };
+    
+    animationObjects.push(orbAnimation);
 }
 
-// Create a bus
-function createBus(x, y, z) {
-    // Bus group
-    const bus = new THREE.Group();
-    bus.position.set(x, y, z);
+// Create a simple hut
+function createHut(x, y, z) {
+    const hut = new THREE.Group();
+    hut.position.set(x, y, z);
     
-    // Bus body
-    const busBodyGeometry = new THREE.BoxGeometry(7, 4, 16);
-    const busBodyMaterial = new THREE.MeshStandardMaterial({
-        color: 0xFDD835, // School bus yellow
-        roughness: 0.7,
-        metalness: 0.3
-    });
-    
-    const busBody = new THREE.Mesh(busBodyGeometry, busBodyMaterial);
-    busBody.position.y = 2.5;
-    busBody.castShadow = true;
-    busBody.receiveShadow = true;
-    bus.add(busBody);
-    
-    // Add to colliders
-    worldObjects.push({
-        type: 'box',
-        width: 7,
-        height: 4,
-        depth: 16,
-        position: new THREE.Vector3(x, y + 2.5, z),
-        mesh: busBody
-    });
-    
-    // Windows (black tint)
-    const windowMaterial = new THREE.MeshStandardMaterial({
-        color: 0x333333,
-        roughness: 0.5,
-        metalness: 0.8,
-        transparent: true,
-        opacity: 0.7
-    });
-    
-    // Side windows
-    const sideWindowGeometry = new THREE.BoxGeometry(0.1, 1.5, 12);
-    
-    // Left side windows
-    const leftWindows = new THREE.Mesh(sideWindowGeometry, windowMaterial);
-    leftWindows.position.set(-3.55, 3, 0);
-    bus.add(leftWindows);
-    
-    // Right side windows
-    const rightWindows = new THREE.Mesh(sideWindowGeometry, windowMaterial);
-    rightWindows.position.set(3.55, 3, 0);
-    bus.add(rightWindows);
-    
-    // Front/back windows
-    const frontWindowGeometry = new THREE.BoxGeometry(7, 1.5, 0.1);
-    
-    // Front window
-    const frontWindow = new THREE.Mesh(frontWindowGeometry, windowMaterial);
-    frontWindow.position.set(0, 3, 8.05);
-    bus.add(frontWindow);
-    
-    // Back window
-    const backWindow = new THREE.Mesh(frontWindowGeometry, windowMaterial);
-    backWindow.position.set(0, 3, -8.05);
-    bus.add(backWindow);
-    
-    // Wheels
-    const wheelGeometry = new THREE.CylinderGeometry(1, 1, 0.5, 16);
-    const wheelMaterial = new THREE.MeshStandardMaterial({
-        color: 0x333333,
-        roughness: 0.9,
-        metalness: 0.4
-    });
-    
-    // Front wheels
-    const frontLeftWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-    frontLeftWheel.rotation.z = Math.PI / 2;
-    frontLeftWheel.position.set(-3.5, 1, 6);
-    bus.add(frontLeftWheel);
-    
-    const frontRightWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-    frontRightWheel.rotation.z = Math.PI / 2;
-    frontRightWheel.position.set(3.5, 1, 6);
-    bus.add(frontRightWheel);
-    
-    // Back wheels
-    const backLeftWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-    backLeftWheel.rotation.z = Math.PI / 2;
-    backLeftWheel.position.set(-3.5, 1, -6);
-    bus.add(backLeftWheel);
-    
-    const backRightWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-    backRightWheel.rotation.z = Math.PI / 2;
-    backRightWheel.position.set(3.5, 1, -6);
-    bus.add(backRightWheel);
-    
-    // Door
-    const doorGeometry = new THREE.PlaneGeometry(1.5, 3);
-    const doorMaterial = new THREE.MeshStandardMaterial({
-        color: 0x000000,
-        side: THREE.DoubleSide
-    });
-    
-    const door = new THREE.Mesh(doorGeometry, doorMaterial);
-    door.position.set(2.5, 2, 8.01);
-    bus.add(door);
-    
-    // Add bus to both scenes
-    players.forEach(player => {
-        player.scene.add(bus.clone());
-    });
-}
-
-// Create a truck
-function createTruck(x, y, z) {
-    // Truck group
-    const truck = new THREE.Group();
-    truck.position.set(x, y, z);
-    
-    // Truck cab
-    const cabGeometry = new THREE.BoxGeometry(5, 3, 4);
-    const cabMaterial = new THREE.MeshStandardMaterial({
-        color: 0xD32F2F, // Red
-        roughness: 0.7,
-        metalness: 0.4
-    });
-    
-    const cab = new THREE.Mesh(cabGeometry, cabMaterial);
-    cab.position.set(0, 2, 3);
-    cab.castShadow = true;
-    cab.receiveShadow = true;
-    truck.add(cab);
-    
-    // Add to colliders
-    worldObjects.push({
-        type: 'box',
-        width: 5,
-        height: 3,
-        depth: 4,
-        position: new THREE.Vector3(x, y + 2, z + 3),
-        mesh: cab
-    });
-    
-    // Truck bed
-    const bedGeometry = new THREE.BoxGeometry(5, 2, 6);
-    const bedMaterial = new THREE.MeshStandardMaterial({
-        color: 0x607D8B, // Dark grey
-        roughness: 0.8,
-        metalness: 0.4
-    });
-    
-    const bed = new THREE.Mesh(bedGeometry, bedMaterial);
-    bed.position.set(0, 1.5, -3);
-    bed.castShadow = true;
-    bed.receiveShadow = true;
-    truck.add(bed);
-    
-    // Add to colliders
-    worldObjects.push({
-        type: 'box',
-        width: 5,
-        height: 2,
-        depth: 6,
-        position: new THREE.Vector3(x, y + 1.5, z - 3),
-        mesh: bed
-    });
-    
-    // Windows
-    const windowMaterial = new THREE.MeshStandardMaterial({
-        color: 0x88CCFF,
-        transparent: true,
-        opacity: 0.7
-    });
-    
-    // Windshield
-    const windshieldGeometry = new THREE.PlaneGeometry(4, 1.5);
-    const windshield = new THREE.Mesh(windshieldGeometry, windowMaterial);
-    windshield.position.set(0, 2.5, 5.01);
-    truck.add(windshield);
-    
-    // Wheels
-    const wheelGeometry = new THREE.CylinderGeometry(1, 1, 0.8, 16);
-    const wheelMaterial = new THREE.MeshStandardMaterial({
-        color: 0x333333,
+    // Create base platform
+    const baseGeometry = new THREE.CylinderGeometry(6, 6, 0.5, 16);
+    const baseMaterial = new THREE.MeshStandardMaterial({
+        color: 0x8D6E63,
         roughness: 0.9
     });
     
-    // Front wheels
-    const frontLeftWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-    frontLeftWheel.rotation.z = Math.PI / 2;
-    frontLeftWheel.position.set(-2.5, 1, 3);
-    truck.add(frontLeftWheel);
+    const base = new THREE.Mesh(baseGeometry, baseMaterial);
+    base.position.y = 0.25;
+    base.receiveShadow = true;
+    hut.add(base);
     
-    const frontRightWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-    frontRightWheel.rotation.z = Math.PI / 2;
-    frontRightWheel.position.set(2.5, 1, 3);
-    truck.add(frontRightWheel);
+    // Add to colliders
+    worldObjects.push({
+        type: 'cylinder',
+        radius: 6,
+        height: 0.5,
+        position: new THREE.Vector3(x, y + 0.25, z),
+        mesh: base
+    });
     
-    // Back wheels
-    const backLeftWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-    backLeftWheel.rotation.z = Math.PI / 2;
-    backLeftWheel.position.set(-2.5, 1, -3);
-    truck.add(backLeftWheel);
+    // Create walls
+    const wallGeometry = new THREE.CylinderGeometry(5, 5, 4, 16);
+    const wallMaterial = new THREE.MeshStandardMaterial({
+        color: 0xA1887F,
+        roughness: 0.7
+    });
     
-    const backRightWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-    backRightWheel.rotation.z = Math.PI / 2;
-    backRightWheel.position.set(2.5, 1, -3);
-    truck.add(backRightWheel);
+    const walls = new THREE.Mesh(wallGeometry, wallMaterial);
+    walls.position.y = 2.5;
+    walls.castShadow = true;
+    walls.receiveShadow = true;
+    hut.add(walls);
     
-    // Add truck to both scenes
+    // Add to colliders
+    worldObjects.push({
+        type: 'cylinder',
+        radius: 5,
+        height: 4,
+        position: new THREE.Vector3(x, y + 2.5, z),
+        mesh: walls
+    });
+    
+    // Create roof
+    const roofGeometry = new THREE.ConeGeometry(6.5, 3, 16);
+    const roofMaterial = new THREE.MeshStandardMaterial({
+        color: 0x4E342E,
+        roughness: 0.8
+    });
+    
+    const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+    roof.position.y = 6;
+    roof.castShadow = true;
+    hut.add(roof);
+    
+    // Create entrance
+    const doorGeometry = new THREE.BoxGeometry(2, 3, 0.5);
+    const doorMaterial = new THREE.MeshStandardMaterial({
+        color: 0x3E2723,
+        roughness: 0.7
+    });
+    
+    const door = new THREE.Mesh(doorGeometry, doorMaterial);
+    door.position.set(0, 1.5, 5);
+    hut.add(door);
+    
+    // Create windows
+    const windowMaterial = new THREE.MeshStandardMaterial({
+        color: 0xE0F7FA,
+        transparent: true,
+        opacity: 0.7
+    });
+    
+    const windowGeometry = new THREE.CircleGeometry(0.7, 16);
+    
+    // Add windows around the hut
+    for (let i = 0; i < 5; i++) {
+        const angle = (i / 5) * Math.PI * 2 + Math.PI/5;
+        
+        const window = new THREE.Mesh(windowGeometry, windowMaterial);
+        window.position.set(
+            Math.sin(angle) * 5,
+            2.5,
+            Math.cos(angle) * 5
+        );
+        window.rotation.y = angle;
+        hut.add(window);
+    }
+    
+    // Add to both scenes
     players.forEach(player => {
-        player.scene.add(truck.clone());
+        player.scene.add(hut.clone());
     });
 }
 
-// Create crates and barriers
-function createCrates() {
-    // Crate positions (x, z)
-    const cratePositions = [
-        { x: -10, z: 25 },
-        { x: 15, z: 30 },
-        { x: -30, z: 0 },
-        { x: 30, z: -10 },
-        { x: -15, z: -35 },
-        { x: 12, z: 5 },
-        { x: -5, z: -5 }
-    ];
+// Create a supply crate
+function createSupplyCrate(x, z) {
+    const crate = new THREE.Group();
+    crate.position.set(x, 0, z);
     
-    // Create crates
-    const crateGeometry = new THREE.BoxGeometry(3, 3, 3);
+    // Create crate body
+    const crateGeometry = new THREE.BoxGeometry(2, 2, 2);
     const crateMaterial = new THREE.MeshStandardMaterial({
         color: 0x8D6E63,
-        roughness: 0.7,
-        bumpScale: 0.002
+        roughness: 0.8
     });
     
-    cratePositions.forEach(pos => {
-        const crate = new THREE.Mesh(crateGeometry, crateMaterial);
-        crate.position.set(pos.x, 1.5, pos.z);
-        crate.castShadow = true;
-        crate.receiveShadow = true;
-        
-        // Add to both scenes
-        players.forEach(player => {
-            player.scene.add(crate.clone());
-        });
-        
-        // Add to colliders
-        worldObjects.push({
-            type: 'box',
-            width: 3,
-            height: 3,
-            depth: 3,
-            position: new THREE.Vector3(pos.x, 1.5, pos.z),
-            mesh: crate
-        });
+    const crateBody = new THREE.Mesh(crateGeometry, crateMaterial);
+    crateBody.position.y = 1;
+    crateBody.castShadow = true;
+    crateBody.receiveShadow = true;
+    crate.add(crateBody);
+    
+    // Add to colliders
+    worldObjects.push({
+        type: 'box',
+        width: 2,
+        height: 2,
+        depth: 2,
+        position: new THREE.Vector3(x, 1, z),
+        mesh: crateBody
     });
     
-    // Barrier positions
-    const barrierPositions = [
-        { x: -5, z: 0, rotation: 0 },
-        { x: 5, z: 0, rotation: 0 },
-        { x: 15, z: -15, rotation: Math.PI / 2 },
-        { x: -15, z: -15, rotation: Math.PI / 2 },
-        { x: 0, z: 30, rotation: 0 }
-    ];
-    
-    // Create barriers
-    const barrierGeometry = new THREE.BoxGeometry(5, 1.2, 0.5);
-    const barrierMaterial = new THREE.MeshStandardMaterial({
-        color: 0xFFB300,
-        roughness: 0.5,
-        metalness: 0.3
+    // Add some supplies on top
+    const supplyGeometry = new THREE.BoxGeometry(1, 1, 1);
+    const supplyMaterial = new THREE.MeshStandardMaterial({
+        color: 0xBDBDBD,
+        roughness: 0.7
     });
     
-    barrierPositions.forEach(pos => {
-        const barrier = new THREE.Mesh(barrierGeometry, barrierMaterial);
-        barrier.position.set(pos.x, 0.6, pos.z);
-        barrier.rotation.y = pos.rotation;
-        barrier.castShadow = true;
-        barrier.receiveShadow = true;
-        
-        // Add to both scenes
-        players.forEach(player => {
-            player.scene.add(barrier.clone());
-        });
-        
-        // Add to colliders
-        worldObjects.push({
-            type: 'box',
-            width: 5,
-            height: 1.2,
-            depth: 0.5,
-            position: barrier.position,
-            rotation: barrier.rotation,
-            mesh: barrier
-        });
-    });
-}
-
-// Create mannequins (Nuketown iconic feature)
-function createMannequins() {
-    const mannequinPositions = [
-        { x: -20, z: -10, rotation: Math.PI / 4 },
-        { x: 20, z: 5, rotation: -Math.PI / 6 },
-        { x: 0, z: 35, rotation: Math.PI }
-    ];
+    const supply = new THREE.Mesh(supplyGeometry, supplyMaterial);
+    supply.position.set(0, 2.5, 0);
+    supply.castShadow = true;
+    crate.add(supply);
     
-    mannequinPositions.forEach(pos => {
-        // Mannequin group
-        const mannequin = new THREE.Group();
-        mannequin.position.set(pos.x, 0, pos.z);
-        mannequin.rotation.y = pos.rotation;
-        
-        // Body (simplified)
-        const bodyGeometry = new THREE.CylinderGeometry(0.5, 0.5, 3, 8);
-        const bodyMaterial = new THREE.MeshStandardMaterial({
-            color: 0xEEEEEE,
-            roughness: 0.9
-        });
-        
-        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        body.position.y = 2.5;
-        body.castShadow = true;
-        mannequin.add(body);
-        
-        // Head
-        const headGeometry = new THREE.SphereGeometry(0.7, 16, 16);
-        const head = new THREE.Mesh(headGeometry, bodyMaterial);
-        head.position.y = 4.2;
-        head.castShadow = true;
-        mannequin.add(head);
-        
-        // Arms
-        const armGeometry = new THREE.CylinderGeometry(0.2, 0.2, 2, 8);
-        
-        // Left arm
-        const leftArm = new THREE.Mesh(armGeometry, bodyMaterial);
-        leftArm.position.set(-0.8, 3, 0);
-        leftArm.rotation.z = Math.PI / 4;
-        leftArm.castShadow = true;
-        mannequin.add(leftArm);
-        
-        // Right arm
-        const rightArm = new THREE.Mesh(armGeometry, bodyMaterial);
-        rightArm.position.set(0.8, 3, 0);
-        rightArm.rotation.z = -Math.PI / 4;
-        rightArm.castShadow = true;
-        mannequin.add(rightArm);
-        
-        // Add to both scenes
-        players.forEach(player => {
-            player.scene.add(mannequin.clone());
-        });
-        
-        // Add to colliders (just the body)
-        worldObjects.push({
-            type: 'cylinder',
-            radius: 0.5,
-            height: 3,
-            position: new THREE.Vector3(pos.x, 2.5, pos.z),
-            mesh: body
-        });
+    // Add to both scenes
+    players.forEach(player => {
+        player.scene.add(crate.clone());
     });
 }
 
