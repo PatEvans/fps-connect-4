@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect 4 Split-Screen PvP</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <div id="player1Canvas" class="gameCanvas"></div>
+    <div id="player2Canvas" class="gameCanvas"></div>
+    
+    <!-- Minimaps -->
+    <div id="player1Minimap" class="minimap-container">
+        <canvas id="minimap1Canvas" class="minimap-canvas"></canvas>
+        <div class="minimap-label">MINIMAP</div>
+        <div class="minimap-key">
+            <div class="key-item"><span class="key-color" style="background:red;"></span> You</div>
+            <div class="key-item"><span class="key-color" style="background:yellow;"></span> P2</div>
+            <div class="key-item"><span class="key-color" style="background:white;"></span> Tubes</div>
+        </div>
+    </div>
+    <div id="player2Minimap" class="minimap-container">
+        <canvas id="minimap2Canvas" class="minimap-canvas"></canvas>
+        <div class="minimap-label">MINIMAP</div>
+        <div class="minimap-key">
+            <div class="key-item"><span class="key-color" style="background:yellow;"></span> You</div>
+            <div class="key-item"><span class="key-color" style="background:red;"></span> P1</div>
+            <div class="key-item"><span class="key-color" style="background:white;"></span> Tubes</div>
+        </div>
+    </div>
+    
+    <div id="gameControls">
+        <div id="gameStatus">Player <span id="playerRed">Red</span> wins!</div>
+        <button id="resetButton">Play Again</button>
+    </div>
+    
+    <div id="player1Label" class="playerLabel">PLAYER 1 (RED)</div>
+    <div id="player2Label" class="playerLabel">PLAYER 2 (YELLOW)</div>
+    
+    <div id="instructions">
+        <h2>Connect 4 Split-Screen PvP</h2>
+        <p>Compete head-to-head in a Nuketown-inspired map! Find and race to slides scattered around the map!</p>
+        <p><strong>Player 1 (Red):</strong> <span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span> to move, <span class="key">SPACE</span> to jump</p>
+        <p><strong>Player 2 (Yellow):</strong> <span class="key">↑</span> <span class="key">←</span> <span class="key">↓</span> <span class="key">→</span> to move, <span class="key">ENTER</span> to jump</p>
+        <p>Look for colored tube entrances in houses, vehicles, and around the map!</p>
+        <p>The minimap shows where tube entrances are located.</p>
+        <p>First player to connect 4 pieces in a row wins!</p>
+        <button id="startButton">Start Game</button>
+    </div>
+    
+    <div id="player1Controls" class="controlsHint">WASD + SPACE</div>
+    <div id="player2Controls" class="controlsHint">ARROWS + ENTER</div>
+    
+    <!-- Add 2D board representation -->
+    <div id="board2D">
+        <div id="board2DTitle">Game Board</div>
+        <canvas id="board2DCanvas" width="210" height="180"></canvas>
+    </div>
+
+    <!-- JavaScript Modules -->
+    <script src="js/utils.js"></script>
+    <script src="js/animation.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/minimap.js"></script>
+    <script src="js/scene.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

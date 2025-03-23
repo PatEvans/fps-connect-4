@@ -1,0 +1,181 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.gameCanvas {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+}
+#player1Canvas {
+    left: 0;
+    border-right: 2px solid white;
+}
+#player2Canvas {
+    left: 50%;
+}
+#gameControls {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 20px 25px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+    min-width: 320px;
+    display: none;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+#gameStatus {
+    margin-bottom: 20px;
+    font-size: 22px;
+    color: #222;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+#resetButton {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+#resetButton:hover {
+    background: linear-gradient(135deg, #ff4757 0%, #ff2e43 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(255, 71, 87, 0.5);
+}
+#playerRed {
+    color: #ff3b30;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 59, 48, 0.4);
+}
+#playerYellow {
+    color: #ffcc00;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 204, 0, 0.4);
+}
+#instructions {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 600px;
+    z-index: 1000;
+    font-size: 18px;
+    line-height: 1.6;
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+}
+#instructions h2 {
+    color: #ff3b30;
+    margin-top: 0;
+}
+#instructions .key {
+    display: inline-block;
+    background-color: #333;
+    border: 1px solid #555;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin: 0 3px;
+}
+#startButton {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+}
+#startButton:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+.playerLabel {
+    position: absolute;
+    top: 20px;
+    font-size: 22px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 10px 20px;
+    border-radius: 10px;
+    z-index: 100;
+    text-align: center;
+}
+#player1Label {
+    left: 20px;
+    color: #ff3b30;
+}
+#player2Label {
+    right: 20px;
+    color: #ffcc00;
+}
+/* 2D board styles */
+#board2D {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    padding: 10px;
+    z-index: 100;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+#board2D:hover {
+    transform: translateX(-50%) scale(1.05);
+    background-color: rgba(0, 0, 0, 0.8);
+}
+#board2D canvas {
+    display: block;
+}
+#board2DTitle {
+    color: white;
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.controlsHint {
+    position: absolute;
+    bottom: 20px;
+    font-size: 16px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 8px 15px;
+    border-radius: 8px;
+    z-index: 100;
+}
+#player1Controls {
+    left: 20px;
+}
+#player2Controls {
+    right: 20px;
+}
